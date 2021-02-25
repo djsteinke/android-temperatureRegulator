@@ -79,6 +79,7 @@ public class MainActivity extends AppCompatActivity implements UrlListener {
             txt += "Temp C: " + intVal +"\n";
             intVal = (int) object.get("tempF");
             txt += "Temp F: " + intVal +"\n";
+
         } catch (JSONException e) {
             Log.e("onGetComplete()", "Error: " + e.getMessage());
         }
