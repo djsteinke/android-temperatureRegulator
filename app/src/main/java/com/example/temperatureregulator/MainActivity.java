@@ -80,13 +80,19 @@ public class MainActivity extends AppCompatActivity implements UrlListener {
         DecimalFormat df0 = new DecimalFormat("#");
         try {
             JSONObject msg = new JSONObject(val);
-            JSONObject object = msg.getJSONObject("current");
-            txt = "Humidity: " + df0.format((double)object.get("humidity")) +"%\n";
-            txt += "Temp \u00B0C/\u00B0F: " + df1.format((double)object.get("temperature")) + " / " +
-                    df1.format(getTempF((double)object.get("temperature"))) +"\n";
-            txt += "Step: " + object.get("step") + "\n";
-            txt += "Step Time: " + object.get("stepTime") + "\n";
-            txt += "Elapsed Time: " + object.get("elapsedTime") + "\n";
+            if (msg.has("current")) {
+                JSONObject object = msg.getJSONObject("current");
+                txt = "Humidity: " + df0.format((double) object.get("humidity")) + "%\n";
+                txt += "Temp \u00B0C/\u00B0F: " + df1.format((double) object.get("temperature")) + " / " +
+                        df1.format(getTempF((double) object.get("temperature"))) + "\n";
+                txt += "Step: " + object.get("step") + "\n";
+                txt += "Step Time: " + object.get("stepTime") + "\n";
+                txt += "Elapsed Time: " + object.get("elapsedTime") + "\n";
+            } else if (msg.has("statusCode")) {
+                int code = msg.getInt("statusCode");
+                if (code == 200)
+                    return;
+            }
             // txt += "Temp \u00B0F: " +  +"\n";
 
         } catch (JSONException e) {
