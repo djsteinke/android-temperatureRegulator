@@ -18,58 +18,20 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements UrlListener {
 
+    TextView textView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Button button = findViewById(R.id.button);
-        final TextView textView = findViewById(R.id.text);
+        textView = findViewById(R.id.text);
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
         button.setOnClickListener(v -> {
-            try {
-                URL url = new URL("http://192.168.0.151:1983/getTemp");
-                HttpURLConnection con = (HttpURLConnection) url.openConnection();
-                //con.setReadTimeout(10000);
-                //con.setConnectTimeout(10000);
-                //con.setUseCaches(false);
-                //con.setAllowUserInteraction(false);
-                con.setRequestProperty("Content-Type", "application/json; utf-8");
-                //con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-                con.connect();
-                System.out.println(con.toString());
-                System.out.println(con.getRequestMethod());
-                System.out.println(con.getResponseCode());
-                //con.setRequestMethod("GET");
-                //con.setDoOutput(false);
-                //System.out.println(con.getResponseMessage());
-                BufferedReader br = new BufferedReader(new InputStreamReader((con.getInputStream())));
-                StringBuilder sb = new StringBuilder();
-                String output;
-                System.out.println("b");
-                while ((output = br.readLine()) != null) {
-                    sb.append(output);
-                }
-                System.out.println(sb.toString());
-                textView.setText(sb.toString());
-                /*
-                try(BufferedReader br = new BufferedReader(
-                        new InputStreamReader(con.getInputStream(), StandardCharsets.UTF_8))) {
-                    StringBuilder response = new StringBuilder();
-                    String responseLine = "RESPONSE: ";
-                    while ((responseLine = br.readLine()) != null) {
-                        response.append(responseLine.trim());
-                    }
-                    System.out.println(response.toString());
-                    textView.setText(response.toString());
-                }
-
-                 */
-            } catch (IOException e) {
-                System.out.println("Error: " + e.getMessage());
-            }
+            UrlAsync async = new UrlAsync(this);
+            async.execute("getTemp");
         });
         /*
         button.setOnClickListener(v -> {
@@ -100,5 +62,12 @@ public class MainActivity extends AppCompatActivity {
         });
 
          */
+    }
+
+    @Override
+    public void onGetComplete(String val) {
+        if (textView != null) {
+            textView.setText(val);
+        }
     }
 }
