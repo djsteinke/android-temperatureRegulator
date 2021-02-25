@@ -29,6 +29,15 @@ public class MainActivity extends AppCompatActivity implements UrlListener {
             UrlAsync async = new UrlAsync(this);
             async.execute("GET","getTemp");
         });
+
+        btnStart.setOnClickListener(v -> {
+            UrlAsync async = new UrlAsync(this);
+            async.execute("GET","timer/"+btnStart.getText());
+            if (btnStart.getText().equals("Start"))
+                btnStart.setText("Stop");
+            else
+                btnStart.setText("Start");
+        });
         /*
         button.setOnClickListener(v -> {
             try {
