@@ -5,22 +5,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 
 public class MainActivity extends AppCompatActivity implements UrlListener {
@@ -30,11 +20,12 @@ public class MainActivity extends AppCompatActivity implements UrlListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Button button = findViewById(R.id.button);
+        Button btnReload = findViewById(R.id.reload);
+        Button btnStart = findViewById(R.id.start_stop);
         textView = findViewById(R.id.text);
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
-        button.setOnClickListener(v -> {
+        btnReload.setOnClickListener(v -> {
             UrlAsync async = new UrlAsync(this);
             async.execute("GET","getTemp");
         });
@@ -69,16 +60,24 @@ public class MainActivity extends AppCompatActivity implements UrlListener {
          */
     }
 
+    private double getTempF(double c) {
+        return c*1.8 + 32;
+    }
+
     @Override
     public void onGetComplete(String val) {
         String txt = "";
         DecimalFormat df1 = new DecimalFormat("#.#");
         DecimalFormat df0 = new DecimalFormat("#");
         try {
-            JSONObject object = new JSONObject(val);
+            JSONObject msg = new JSONObject(val);
+            JSONObject object = msg.getJSONObject("current");
             txt = "Humidity: " + df0.format((double)object.get("humidity")) +"%\n";
-            txt += "Temp \u00B0C/\u00B0F: " + df1.format((double)object.get("temp")) + " / " +
-                    df1.format((double)object.get("tempF")) +"\n";
+            txt += "Temp \u00B0C/\u00B0F: " + df1.format((double)object.get("temperature")) + " / " +
+                    df1.format(getTempF((double)object.get("temperature"))) +"\n";
+            txt += "Step: " + object.get("step") + "\n";
+            txt += "Step Time: " + object.get("stepTime") + "\n";
+            txt += "Elapsed Time: " + object.get("elapsedTime") + "\n";
             // txt += "Temp \u00B0F: " +  +"\n";
 
         } catch (JSONException e) {
