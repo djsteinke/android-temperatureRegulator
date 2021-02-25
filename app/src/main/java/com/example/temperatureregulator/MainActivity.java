@@ -4,9 +4,13 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -31,7 +35,7 @@ public class MainActivity extends AppCompatActivity implements UrlListener {
         StrictMode.setThreadPolicy(policy);
         button.setOnClickListener(v -> {
             UrlAsync async = new UrlAsync(this);
-            async.execute("getTemp");
+            async.execute("GET","getTemp");
         });
         /*
         button.setOnClickListener(v -> {
@@ -66,8 +70,20 @@ public class MainActivity extends AppCompatActivity implements UrlListener {
 
     @Override
     public void onGetComplete(String val) {
+        String txt = "";
+        try {
+            JSONObject object = new JSONObject(val);
+            int intVal = (int) object.get("humidity");
+            txt = "Humidity: " + intVal +"\n";
+            intVal = (int) object.get("temp");
+            txt += "Temp C: " + intVal +"\n";
+            intVal = (int) object.get("tempF");
+            txt += "Temp F: " + intVal +"\n";
+        } catch (JSONException e) {
+            Log.e("onGetComplete()", "Error: " + e.getMessage());
+        }
         if (textView != null) {
-            textView.setText(val);
+            textView.setText(txt);
         }
     }
 }

@@ -20,14 +20,20 @@ public class UrlAsync extends AsyncTask<String,Void,String > {
     @Override
     protected String doInBackground(String... urls) {
         try {
-            URL url = new URL(urlBase + urls[0]);
+            URL url = new URL(urlBase + urls[1]);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             //con.setReadTimeout(10000);
             //con.setConnectTimeout(10000);
             //con.setUseCaches(false);
             //con.setAllowUserInteraction(false);
             con.setRequestProperty("Content-Type", "application/json; utf-8");
-            con.connect();
+            if (urls[0].equals("GET"))
+                con.connect();
+            else if (urls[0].equals("POST")) {
+                // TODO "POST" method
+                int val = 1;
+            } else
+                return "Invalid request.";
             System.out.println(con.toString());
             System.out.println(con.getRequestMethod());
             System.out.println(con.getResponseCode());
