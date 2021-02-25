@@ -32,11 +32,11 @@ public class MainActivity extends AppCompatActivity implements UrlListener {
 
         btnStart.setOnClickListener(v -> {
             UrlAsync async = new UrlAsync(this);
-            async.execute("GET","timer/"+btnStart.getText());
-            if (btnStart.getText().equals("Start"))
-                btnStart.setText("Stop");
+            async.execute("GET","program/"+btnStart.getText());
+            if (btnStart.getText().equals("start"))
+                btnStart.setText("stop");
             else
-                btnStart.setText("Start");
+                btnStart.setText("start");
         });
         /*
         button.setOnClickListener(v -> {
@@ -85,9 +85,9 @@ public class MainActivity extends AppCompatActivity implements UrlListener {
                 txt = "Humidity: " + df0.format((double) object.get("humidity")) + "%\n";
                 txt += "Temp \u00B0C/\u00B0F: " + df1.format((double) object.get("temperature")) + " / " +
                         df1.format(getTempF((double) object.get("temperature"))) + "\n";
-                txt += "Step: " + object.get("step") + "\n";
-                txt += "Step Time: " + object.get("stepTime") + "\n";
-                txt += "Elapsed Time: " + object.get("elapsedTime") + "\n";
+                txt += "Step: " + object.getInt("step") + "\n";
+                txt += "Step Time: " + object.getInt("stepTime") + "\n";
+                txt += "Elapsed Time: " + object.getInt("elapsedTime") + "\n";
             } else if (msg.has("statusCode")) {
                 int code = msg.getInt("statusCode");
                 if (code == 200)

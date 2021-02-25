@@ -24,8 +24,8 @@ public class UrlAsync extends AsyncTask<String,Void,String > {
         try {
             URL url = new URL(urlBase + urls[1]);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
-            //con.setReadTimeout(10000);
-            //con.setConnectTimeout(10000);
+            con.setReadTimeout(10000);
+            con.setConnectTimeout(10000);
             //con.setUseCaches(false);
             //con.setAllowUserInteraction(false);
             con.setRequestProperty("Content-Type", "application/json; utf-8");
