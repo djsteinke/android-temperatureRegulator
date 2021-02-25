@@ -8,10 +8,12 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import javax.net.ssl.HttpsURLConnection;
+
 public class UrlAsync extends AsyncTask<String,Void,String > {
     private static final String TAG = UrlAsync.class.getSimpleName();
     UrlListener listener;
-    String urlBase = "https://192.168.0.151:1983/";
+    String urlBase = "http://192.168.0.151:1983/";
 
     public UrlAsync(UrlListener listener) {
         this.listener = listener;

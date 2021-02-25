@@ -21,6 +21,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
+import java.text.DecimalFormat;
 
 public class MainActivity extends AppCompatActivity implements UrlListener {
 
@@ -71,14 +72,16 @@ public class MainActivity extends AppCompatActivity implements UrlListener {
     @Override
     public void onGetComplete(String val) {
         String txt = "";
+        DecimalFormat df1 = new DecimalFormat("#.#");
+        DecimalFormat df0 = new DecimalFormat("#");
         try {
             JSONObject object = new JSONObject(val);
-            int intVal = (int) object.get("humidity");
-            txt = "Humidity: " + intVal +"\n";
-            intVal = (int) object.get("temp");
-            txt += "Temp C: " + intVal +"\n";
-            intVal = (int) object.get("tempF");
-            txt += "Temp F: " + intVal +"\n";
+            int intVal = (int) Math.round((double)object.get("humidity"));
+            txt = "Humidity: " + df0.format((double)object.get("humidity")) +"%\n";
+            intVal = (int) Math.round((double)object.get("temp"));
+            txt += "Temp \u00B0C: " + df1.format((double)object.get("temp")) +"\n";
+            intVal = (int) Math.round((double)object.get("tempF"));
+            txt += "Temp \u00B0F: " + df1.format((double)object.get("tempF")) +"\n";
 
         } catch (JSONException e) {
             Log.e("onGetComplete()", "Error: " + e.getMessage());
@@ -86,5 +89,12 @@ public class MainActivity extends AppCompatActivity implements UrlListener {
         if (textView != null) {
             textView.setText(txt);
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        UrlAsync async = new UrlAsync(this);
+        async.execute("GET","getTemp");
     }
 }
