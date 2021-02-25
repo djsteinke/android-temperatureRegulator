@@ -77,8 +77,9 @@ public class MainActivity extends AppCompatActivity implements UrlListener {
         try {
             JSONObject object = new JSONObject(val);
             txt = "Humidity: " + df0.format((double)object.get("humidity")) +"%\n";
-            txt += "Temp \u00B0C: " + df1.format((double)object.get("temp")) +"\n";
-            txt += "Temp \u00B0F: " + df1.format((double)object.get("tempF")) +"\n";
+            txt += "Temp \u00B0C/\u00B0F: " + df1.format((double)object.get("temp")) + " / " +
+                    df1.format((double)object.get("tempF")) +"\n";
+            // txt += "Temp \u00B0F: " +  +"\n";
 
         } catch (JSONException e) {
             Log.e("onGetComplete()", "Error: " + e.getMessage());
