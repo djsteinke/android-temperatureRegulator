@@ -76,11 +76,8 @@ public class MainActivity extends AppCompatActivity implements UrlListener {
         DecimalFormat df0 = new DecimalFormat("#");
         try {
             JSONObject object = new JSONObject(val);
-            int intVal = (int) Math.round((double)object.get("humidity"));
             txt = "Humidity: " + df0.format((double)object.get("humidity")) +"%\n";
-            intVal = (int) Math.round((double)object.get("temp"));
             txt += "Temp \u00B0C: " + df1.format((double)object.get("temp")) +"\n";
-            intVal = (int) Math.round((double)object.get("tempF"));
             txt += "Temp \u00B0F: " + df1.format((double)object.get("tempF")) +"\n";
 
         } catch (JSONException e) {
