@@ -1,6 +1,7 @@
 package com.example.temperatureregulator;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -25,6 +26,7 @@ public class UrlAsync extends AsyncTask<String,Void,String > {
     protected String doInBackground(String... urls) {
         try {
             URL url = new URL(urlBase + urls[1]);
+            Log.d(TAG, url.toString());
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setReadTimeout(10000);
             con.setConnectTimeout(10000);

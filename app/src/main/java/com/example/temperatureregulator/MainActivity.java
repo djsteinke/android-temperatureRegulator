@@ -3,9 +3,11 @@ package com.example.temperatureregulator;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.StrictMode;
 import android.util.Log;
 import android.widget.Button;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import org.json.JSONException;
@@ -15,28 +17,55 @@ import java.text.DecimalFormat;
 
 public class MainActivity extends AppCompatActivity implements UrlListener {
 
-    TextView textView;
+    private TextView textView;
+    private Switch swcRefresh;
+
+    private final UrlListener urlListener = this;
+
+    Handler refreshHandler = new Handler();
+    Runnable refreshRunnable = new Runnable() {
+        @Override
+        public void run() {
+            UrlAsync async = new UrlAsync(urlListener);
+            async.execute("GET","");
+            refreshHandler.postDelayed(refreshRunnable,15000);
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Button btnReload = findViewById(R.id.reload);
-        Button btnStart = findViewById(R.id.start_stop);
+        swcRefresh = findViewById(R.id.switch_refresh);
+        Switch swcHeat = findViewById(R.id.switch_heat);
+        Switch swcVacuum = findViewById(R.id.switch_vacuum);
         textView = findViewById(R.id.text);
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
+        //StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        //StrictMode.setThreadPolicy(policy);
         btnReload.setOnClickListener(v -> {
             UrlAsync async = new UrlAsync(this);
             async.execute("GET","getTemp");
         });
 
-        btnStart.setOnClickListener(v -> {
+        swcRefresh.setOnClickListener(v -> {
+            String val = (swcRefresh.isChecked()?"start":"stop");
+            refresh(swcRefresh.isChecked());
+            Log.d("swcRefresh.setOnClickListener",val);
+        });
+
+        swcHeat.setOnClickListener(v -> {
+            String val = (swcHeat.isChecked()?"start":"stop");
             UrlAsync async = new UrlAsync(this);
-            async.execute("GET","program/"+btnStart.getText());
-            if (btnStart.getText().equals("start"))
-                btnStart.setText("stop");
-            else
-                btnStart.setText("start");
+            async.execute("GET","program/"+val);
+            Log.d("swcHeat.setOnClickListener",val);
+        });
+
+        swcVacuum.setOnClickListener(v -> {
+            String val = (swcVacuum.isChecked()?"start":"stop");
+            UrlAsync async = new UrlAsync(this);
+            async.execute("GET","vacuum/"+val);
+            Log.d("swcVacuum.setOnClickListener",val);
         });
         /*
         button.setOnClickListener(v -> {
@@ -73,6 +102,13 @@ public class MainActivity extends AppCompatActivity implements UrlListener {
         return c*1.8 + 32;
     }
 
+    private void refresh(boolean start) {
+        if (start)
+            refreshHandler.post(refreshRunnable);
+        else
+            refreshHandler.removeCallbacks(refreshRunnable);
+    }
+
     @Override
     public void onGetComplete(String val) {
         String txt = "";
@@ -88,6 +124,8 @@ public class MainActivity extends AppCompatActivity implements UrlListener {
                 txt += "Step: " + object.getInt("step") + "\n";
                 txt += "Step Time: " + object.getInt("stepTime") + "\n";
                 txt += "Elapsed Time: " + object.getInt("elapsedTime") + "\n";
+                txt += "Heat: " + (object.getBoolean("heat")?"ON":"OFF") + "\n";
+                txt += "Vacuum: " + (object.getBoolean("vacuum")?"ON":"OFF") + "\n";
             } else if (msg.has("statusCode")) {
                 int code = msg.getInt("statusCode");
                 if (code == 200)
@@ -106,7 +144,12 @@ public class MainActivity extends AppCompatActivity implements UrlListener {
     @Override
     public void onResume() {
         super.onResume();
-        UrlAsync async = new UrlAsync(this);
-        async.execute("GET","getTemp");
+        refresh(swcRefresh.isChecked());
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        refresh(false);
     }
 }
