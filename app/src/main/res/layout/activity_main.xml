@@ -38,6 +38,7 @@
             android:layout_height="wrap_content"
             android:text="@string/refresh"
             android:paddingBottom="10dp"
+            android:checked="true"
             app:layout_constraintTop_toTopOf="@+id/reload"
             app:layout_constraintStart_toEndOf="@+id/reload"/>
 

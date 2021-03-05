@@ -19,6 +19,8 @@ public class MainActivity extends AppCompatActivity implements UrlListener {
 
     private TextView textView;
     private Switch swcRefresh;
+    private Switch swcHeat;
+    private Switch swcVacuum;
 
     private final UrlListener urlListener = this;
 
@@ -28,7 +30,7 @@ public class MainActivity extends AppCompatActivity implements UrlListener {
         public void run() {
             UrlAsync async = new UrlAsync(urlListener);
             async.execute("GET","");
-            refreshHandler.postDelayed(refreshRunnable,15000);
+            refreshHandler.postDelayed(refreshRunnable,5000);
         }
     };
 
@@ -38,8 +40,8 @@ public class MainActivity extends AppCompatActivity implements UrlListener {
         setContentView(R.layout.activity_main);
         Button btnReload = findViewById(R.id.reload);
         swcRefresh = findViewById(R.id.switch_refresh);
-        Switch swcHeat = findViewById(R.id.switch_heat);
-        Switch swcVacuum = findViewById(R.id.switch_vacuum);
+        swcHeat = findViewById(R.id.switch_heat);
+        swcVacuum = findViewById(R.id.switch_vacuum);
         textView = findViewById(R.id.text);
         //StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         //StrictMode.setThreadPolicy(policy);
@@ -118,14 +120,17 @@ public class MainActivity extends AppCompatActivity implements UrlListener {
             JSONObject msg = new JSONObject(val);
             if (msg.has("current")) {
                 JSONObject object = msg.getJSONObject("current");
-                txt = "Humidity: " + df0.format((double) object.get("humidity")) + "%\n";
-                txt += "Temp \u00B0C/\u00B0F: " + df1.format((double) object.get("temperature")) + " / " +
-                        df1.format(getTempF((double) object.get("temperature"))) + "\n";
+                txt = "Humidity: " + df0.format((double) object.getDouble("humidity")) + "%\n";
+                txt += "Temperature: " + getTempString((double) object.getDouble("temperature")) + "\n";
                 txt += "Step: " + object.getInt("step") + "\n";
                 txt += "Step Time: " + object.getInt("stepTime") + "\n";
+                txt += "Step Temp: " + getTempString((double) object.getDouble("stepTemperature")) + "\n";
                 txt += "Elapsed Time: " + object.getInt("elapsedTime") + "\n";
                 txt += "Heat: " + (object.getBoolean("heat")?"ON":"OFF") + "\n";
-                txt += "Vacuum: " + (object.getBoolean("vacuum")?"ON":"OFF") + "\n";
+                txt += "Vacuum: " + (object.getBoolean("vacuum")?"ON":"OFF") +
+                        (object.getBoolean("vacuum")?" [" + object.getInt("vacuumTimeRemaining") + "]":"") + "\n";
+                swcHeat.setChecked(object.getBoolean("heat"));
+                swcVacuum.setChecked(object.getBoolean("vacuum"));
             } else if (msg.has("statusCode")) {
                 int code = msg.getInt("statusCode");
                 if (code == 200)
@@ -139,6 +144,11 @@ public class MainActivity extends AppCompatActivity implements UrlListener {
         if (textView != null) {
             textView.setText(txt);
         }
+    }
+
+    private String getTempString(double c) {
+        DecimalFormat df1 = new DecimalFormat("#.#");
+        return df1.format(c) + "\u00B0C [" + df1.format(getTempF(c)) + "\u00B0F]";
     }
 
     @Override
