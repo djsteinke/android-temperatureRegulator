@@ -3,4 +3,26 @@
     <string name="heat">Heat</string>
     <string name="vacuum">Vacuum</string>
     <string name="refresh">Refresh</string>
+
+    <string name="image">Image</string>
+
+    <string name="start">Start</string>
+    <string name="stop">Stop</string>
+
+    <string-array name="alert_titles">
+        <item>Heat</item>
+        <item>Vacuum</item>
+        <item>Program</item>
+    </string-array>
+
+    <string-array name="time_array">
+        <item>30 min</item>
+        <item>60 min</item>
+        <item>90 min</item>
+        <item>2 hrs</item>
+        <item>3 hrs</item>
+        <item>4 hrs</item>
+        <item>5 hrs</item>
+        <item>6 hrs</item>
+    </string-array>
 </resources>

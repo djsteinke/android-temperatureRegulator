@@ -11,12 +11,13 @@ import java.net.URL;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import static com.example.temperatureregulator.MainActivity.settings;
 import static java.util.Objects.isNull;
 
 public class UrlAsync extends AsyncTask<String,Void,String > {
     private static final String TAG = UrlAsync.class.getSimpleName();
     UrlListener listener;
-    String urlBase = "http://192.168.0.151:1983/";
+    private final String urlBase = "http://" + settings.getIp() + ":" + settings.getPort() + "/";
 
     public UrlAsync(UrlListener listener) {
         this.listener = listener;
@@ -43,9 +44,6 @@ public class UrlAsync extends AsyncTask<String,Void,String > {
             System.out.println(con.toString());
             System.out.println(con.getRequestMethod());
             System.out.println(con.getResponseCode());
-            //con.setRequestMethod("GET");
-            //con.setDoOutput(false);
-            //System.out.println(con.getResponseMessage());
             BufferedReader br = new BufferedReader(new InputStreamReader((con.getInputStream())));
             StringBuilder sb = new StringBuilder();
             String output;
@@ -63,6 +61,6 @@ public class UrlAsync extends AsyncTask<String,Void,String > {
 
     @Override
     protected void onPostExecute(String val) {
-        listener.onGetComplete(val);
+        listener.onGetComplete(val, null);
     }
 }

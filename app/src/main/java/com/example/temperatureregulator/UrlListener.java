@@ -1,5 +1,5 @@
 package com.example.temperatureregulator;
 
 public interface UrlListener {
-    void onGetComplete(String val);
+    void onGetComplete(String response, String endPoint);
 }
