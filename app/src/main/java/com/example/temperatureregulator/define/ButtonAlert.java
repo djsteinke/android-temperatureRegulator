@@ -63,6 +63,8 @@ public class ButtonAlert {
             String program = (pos==2?p1.getDisplayedValues()[p1.getValue()]:"none");
             double temp = (p2.getValue()>0?convertTemp((double)p2.getValue(), null):0.0);
             String url = "run?type=" + type + "&time=" + time + "&temp=" + temp + "&program=" + program;
+            if (b.isActivated())
+                url = "cancel?type=" + type;
             Executor executor = Executors.newSingleThreadExecutor();
             executor.execute(new UrlRunnable(listener, url));
         });

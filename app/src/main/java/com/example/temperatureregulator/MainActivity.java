@@ -15,7 +15,6 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewTreeObserver;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.temperatureregulator.define.ButtonAlert;
@@ -26,9 +25,7 @@ import com.example.temperatureregulator.define.UrlRunnable;
 
 import java.io.File;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -39,7 +36,6 @@ import static com.example.temperatureregulator.define.Constants.fromJsonString;
 public class MainActivity extends AppCompatActivity implements UrlListener {
 
     public final static String TAG = MainActivity.class.getSimpleName();
-    private TextView textView;
 
     public static AppCompatImageButton btHeat;
     public static AppCompatImageButton btVacuum;
@@ -59,10 +55,13 @@ public class MainActivity extends AppCompatActivity implements UrlListener {
     private int iHistW;
     private int iHistH;
 
-    Handler refreshHandler = new Handler();
-    Runnable refreshRunnable = () -> {
-        Executor executor = Executors.newSingleThreadExecutor();
-        executor.execute(new UrlRunnable(urlListener, "get/status"));
+    private final Handler refreshHandler = new Handler();
+    private final Runnable refreshRunnable = new Runnable() {
+        @Override
+        public void run() {
+            getStatus();
+            refreshHandler.postDelayed(this, 5000);
+        }
     };
 
     @Override
@@ -166,11 +165,11 @@ public class MainActivity extends AppCompatActivity implements UrlListener {
                 p.moveTo(xOff, (float) y);
                 p.lineTo(iHistW, (float) y);
                 canvas.drawPath(p, pH);
-                canvas.drawText(formatInt((int) i) + "\u00B0", xOff - 10, (float) y + getPxFromDp(5f), pTxt);
+                canvas.drawText(formatInt(i) + "\u00B0", xOff - 10, (float) y + getPxFromDp(5f), pTxt);
                 i -= 10;
             }
 
-            int xDiv = (int) (status.getRecordingTime()/1800) + 1;
+            int xDiv = (status.getRecordingTime()/1800) + 1;
             for (int d = 0; d < xDiv - 1; d++) {
                 double x = xOff + (d*1800) * xMs;
                 Path p = new Path();
@@ -182,6 +181,8 @@ public class MainActivity extends AppCompatActivity implements UrlListener {
             Path pT = new Path();
             Path pV = new Path();
             boolean move = true;
+            double vYold = -1;
+            pV.moveTo((float) xOff, (float) iHistH);
             for (Status.History h : status.getHistoryList()) {
                 double x = xOff + h.getTime() * xMs;
                 double y = (mm[0] - convertTemp(null, h.getTemp())) * yD;
@@ -189,16 +190,23 @@ public class MainActivity extends AppCompatActivity implements UrlListener {
                 if (x >= xOff) {
                     if (move) {
                         pT.moveTo((float) x, (float) y);
-                        pV.moveTo((float) x, (float) vY);
                     } else {
                         pT.lineTo((float) x, (float) y);
+                    }
+                    if (vY != vYold) {
+                        pV.lineTo((float) x, (float) vYold);
                         pV.lineTo((float) x, (float) vY);
+                        vYold = vY;
                     }
                     move = false;
                 }
             }
-            pV.lineTo((float) iHistW, (float) iHistH);
-            pV.lineTo((float) xOff, (float) iHistH);
+            if (status.getHistoryList().size() > 1)
+                if (vYold == 0)
+                    pV.lineTo((float) iHistW, (float) 0);
+                pV.lineTo((float) iHistW, (float) iHistH);
+                pV.lineTo((float) xOff, (float) iHistH);
+                pV.close();
             pTxt.setColor(getColor(R.color.teal_200));
             pTxt.setAlpha(50);
             canvas.drawPath(pV, pTxt);
@@ -266,7 +274,7 @@ public class MainActivity extends AppCompatActivity implements UrlListener {
             return;
         }
         if (response.getCode() == 200) {
-            if (reqType.equals("run")) {
+            if (reqType.equals("run") || reqType.equals("cancel")) {
                 String[] keys =  endPoint.split("\\?")[1].split("&");
                 setRunButtonActivated(keys);
             } else {
@@ -289,9 +297,7 @@ public class MainActivity extends AppCompatActivity implements UrlListener {
 
                     Log.d(TAG, txt);
                     btRefresh.setActivated(false);
-                    if (textView != null) {
-                        textView.setText(txt);
-                    }
+                    refresh(true);
                 }
                 //refreshHandler.postDelayed(refreshRunnable, 5000);
             }

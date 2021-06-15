@@ -56,4 +56,5 @@ public class Constants {
         Gson gson = new GsonBuilder().create();
         return gson.fromJson(sb.toString(), in);
     }
+
 }
