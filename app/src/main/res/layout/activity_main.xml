@@ -3,7 +3,8 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:padding="@dimen/layout_padding">
 
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/history_image"
@@ -42,17 +43,55 @@
         android:background="@drawable/ic_program"
         android:backgroundTint="@drawable/sl_button"
         app:layout_constraintStart_toEndOf="@id/ib_vacuum"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/ib_refresh"
         app:layout_constraintTop_toTopOf="@id/ib_heat"/>
     <androidx.appcompat.widget.AppCompatImageButton
         android:id="@+id/ib_refresh"
         android:layout_width="60dp"
         android:layout_height="60dp"
         android:scaleType="fitCenter"
+        android:visibility="gone"
         android:background="@drawable/ic_refresh"
         android:backgroundTint="@drawable/sl_button"
-        app:layout_constraintStart_toStartOf="@id/ib_vacuum"
-        app:layout_constraintEnd_toEndOf="@id/ib_vacuum"
-        app:layout_constraintTop_toBottomOf="@id/ib_heat"/>
+        app:layout_constraintStart_toEndOf="@id/ib_program"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/ib_heat"/>
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/ib_programs"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:scaleType="fitCenter"
+        android:visibility="gone"
+        android:background="@drawable/ic_baseline_arrow_forward_24"
+        android:backgroundTint="@drawable/sl_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="5dp"
+        android:id="@+id/recycler_view"
+        android:scrollbars="vertical"
+        app:layout_constraintTop_toBottomOf="@id/ib_heat"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_baseline_add_24"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:contentDescription="@string/add_step" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:id="@+id/name_text"
+        android:gravity="top|end"
+        app:layout_constraintTop_toBottomOf="@id/ib_heat"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

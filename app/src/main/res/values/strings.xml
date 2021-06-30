@@ -3,6 +3,17 @@
     <string name="heat">Heat</string>
     <string name="vacuum">Vacuum</string>
     <string name="refresh">Refresh</string>
+    <string name="name">Name</string>
+    <string name="steps">Steps</string>
+    <string name="add_step">Add Step</string>
+    <string name="time_min">Time(min)</string>
+    <string name="temp_c">Temp(°C)</string>
+    <string name="main_menu">Main Menu</string>
+    <string name="shutdown">Shutdown</string>
+    <string name="restart">Restart</string>
+    <string name="description">Description</string>
+    <string name="upload">Send to PI</string>
+    <string name="delete">Delete</string>
 
     <string name="image">Image</string>
 

@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="text_xl">30dp</dimen>
-    <dimen name="text_l">22dp</dimen>
-    <dimen name="text_m">18dp</dimen>
-    <dimen name="text_s">15dp</dimen>
-    <dimen name="text_xs">12dp</dimen>
+    <dimen name="text_xl">30sp</dimen>
+    <dimen name="text_l">22sp</dimen>
+    <dimen name="text_m">18sp</dimen>
+    <dimen name="text_s">15sp</dimen>
+    <dimen name="text_xs">12sp</dimen>
+
+    <dimen name="layout_padding">18dp</dimen>
+    <dimen name="layout_padding_s">5dp</dimen>
 </resources>

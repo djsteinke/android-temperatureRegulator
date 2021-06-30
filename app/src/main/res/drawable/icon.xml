@@ -5,7 +5,8 @@
     android:viewportWidth="24"
     android:viewportHeight="24">
     <path android:fillColor="@color/gray_dark" android:pathData="M1,2h22a1,1 0,0 1 1,1v18a1,1 0,0 1 -1,1h-22a1,1 0,0 1 -1,-1v-18a1,1 0,0 1 1,-1
-    m0.5,6v11a1,1 0,0 0 1,1h19a1,1 0,0 0 1,-1v-11a1,1 0,0 0 -1,-1h-19a1,1 0,0 0 -1,1z"/>
+    m0.5,6v11a1,1 0,0 0 1,1h19a1,1 0,0 0 1,-1v-11a1,1 0,0 0 -1,-1h-19a1,1 0,0 0 -1,1zM2.5,3.5a1,1 0,0 0 0,2a1,1 0,0 0 0,-2zm3,0
+    a1,1 0,0 0 0,2a1,1 0,0 0 0,-2z"/>
 
     <path android:fillColor="#CD6155" android:pathData="M7.3,19c-3,-3 3,-6 0,-9h1.5c3,3 -3,6 0,9z
 m4,0c-3,-3 3,-6 0,-9h1.5c3,3 -3,6 0,9z
