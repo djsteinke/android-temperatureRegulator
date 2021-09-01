@@ -25,6 +25,7 @@ public class Status {
     private boolean heatRunning;
     private boolean vacuumRunning;
     private boolean programRunning;
+    private String running;
 
     @SerializedName("history")
     private List<History> historyList;

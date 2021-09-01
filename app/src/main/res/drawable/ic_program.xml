@@ -5,7 +5,7 @@
     android:viewportHeight="24"
     android:tint="?attr/colorControlNormal">
   <path android:fillColor="@color/white" android:pathData="M3,2h18a1,1 0,0 1 1,1v18a1,1 0,0 1 -1,1h-18a1,1 0,0 1 -1,-1v-18a1,1 0,0 1 1,-1
-m1,2v16h16v-16z"/>
+m0.5,1.5v17h17v-17z"/>
   <!--
   <path
       android:fillColor="@android:color/white"

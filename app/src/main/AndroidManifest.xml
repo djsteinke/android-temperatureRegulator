@@ -27,6 +27,7 @@
             <intent-filter>
                 <action android:name="rnfive.htfu.temperatureregulator.StatusService.START_SERVICE"/>
                 <action android:name="rnfive.htfu.temperatureregulator.StatusService.STOP_SERVICE"/>
+                <action android:name="rnfive.htfu.temperatureregulator.StatusService.REFRESH_STATUS"/>
             </intent-filter>
         </service>
     </application>

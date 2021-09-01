@@ -11,13 +11,21 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.Locale;
 
 public class Constants {
 
-
+    public static final DecimalFormat df1 = new DecimalFormat("#.#");
+    public static final DecimalFormat df0 = new DecimalFormat("#");
+    public static final int tempMaxC = 70;
+    public static final int tempMinC = 26;
     public static String formatInt(int val) {
         return String.format(Locale.US,"%d",val);
+    }
+
+    public static String getTempString(double c) {
+        return df1.format(c) + "\u00B0C [" + df1.format(convertTemp(null, c)) + "\u00B0F]";
     }
 
     public static double convertTemp(Double f, Double c) {

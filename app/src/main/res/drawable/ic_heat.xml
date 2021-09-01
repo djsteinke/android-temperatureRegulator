@@ -9,7 +9,7 @@
     <path android:fillColor="@color/teal_700" android:pathData="M0,0 h24 v24 h-24 z"/>
     <path android:fillColor="@color/black" android:pathData="M11.75,0 v24 h0.5 v-24 z"/> -->
     <path android:fillColor="@color/white" android:pathData="M3,2h18a1,1 0,0 1 1,1v18a1,1 0,0 1 -1,1h-18a1,1 0,0 1 -1,-1v-18a1,1 0,0 1 1,-1
-m1,2v16h16v-16z"/>
+m0.5,1.5v17h17v-17z"/>
     <path android:fillColor="@color/white" android:pathData="M7.3,19c-3,-3 3,-6 0,-9h1.5c3,3 -3,6 0,9z
 m4,0c-3,-3 3,-6 0,-9h1.5c3,3 -3,6 0,9z
 m4,0c-3,-3 3,-6 0,-9h1.5c3,3 -3,6 0,9z"/>

@@ -10,8 +10,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.text.Html;
+import android.text.SpannableString;
 import android.util.Log;
 
+import java.util.Locale;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -20,7 +23,11 @@ import androidx.core.app.NotificationCompat;
 import rnfive.htfu.temperatureregulator.define.UrlRunnable;
 import rnfive.htfu.temperatureregulator.define.enums.Action;
 
+import static android.text.TextUtils.isEmpty;
 import static androidx.core.app.NotificationCompat.FLAG_ONLY_ALERT_ONCE;
+import static rnfive.htfu.temperatureregulator.MainActivity.response;
+import static rnfive.htfu.temperatureregulator.define.Constants.df0;
+import static rnfive.htfu.temperatureregulator.define.Constants.getTempString;
 import static rnfive.htfu.temperatureregulator.define.enums.Action.*;
 
 public class StatusService extends Service implements UrlListener{
@@ -28,6 +35,7 @@ public class StatusService extends Service implements UrlListener{
 
     public static final String START_SERVICE = "rnfive.htfu.temperatureregulator.StatusService.START_SERVICE";
     public static final String STOP_SERVICE = "rnfive.htfu.temperatureregulator.StatusService.STOP_SERVICE";
+    public static final String REFRESH_STATUS = "rnfive.htfu.temperatureregulator.StatusService.REFRESH_STATUS";
     public static final String CHANNEL_ID = "STATUS_SERVICE_CHANNEL";
 
     public static final String BUNDLE_ID = "rnfive.htfu.temperatureregulator.StatusService.BUNDLE";
@@ -40,7 +48,7 @@ public class StatusService extends Service implements UrlListener{
         @Override
         public void run() {
             getStatus();
-            refreshHandler.postDelayed(this, 10000);
+            refreshHandler.postDelayed(this, 15000);
         }
     };
 
@@ -70,6 +78,8 @@ public class StatusService extends Service implements UrlListener{
                 refresh(STOP);
                 stopSelf();
                 break;
+            case REFRESH_STATUS:
+                setNotificationMessage();
             default:
                 break;
         }
@@ -105,20 +115,47 @@ public class StatusService extends Service implements UrlListener{
     }
 
     void setNotificationMessage() {
+        String title = "";
+        String text = null;
+        NotificationCompat.InboxStyle style = new NotificationCompat.InboxStyle();
+        if (response != null && response.getCode() == 400) {
+            title = "Not Connected";
+        } else {
+            if (response != null && response.getType().equals("status") && response.getStatus() != null) {
+                if (response.getStatus().getRunning() != null && !isEmpty(response.getStatus().getRunning())) {
+                    title = response.getStatus().getRunning().toUpperCase(Locale.US);
+                    text = getTempString(response.getStatus().getTemperature()) + " @ " +
+                            df0.format(response.getStatus().getHumidity()) + "%";
+                    style.addLine(text);
+                    if (response.getStatus().getStep() >= 0) {
+                        text = (response.getStatus().getStep() + 1) + " @ " + response.getStatus().getElapsedStepTime() + "["
+                                + response.getStatus().getStepTime() + "]";
+                        style.addLine(text);
+                    }
+                } else {
+                    title = getTempString(response.getStatus().getTemperature()) + " @ " +
+                            df0.format(response.getStatus().getHumidity()) + "%";
+                }
+            }
+        }
+
+        SpannableString formattedBody = null;
+        if (text != null)
+            formattedBody = new SpannableString(Html.fromHtml(text, Html.FROM_HTML_MODE_LEGACY));
         Intent notificationIntent = new Intent(this, StatusService.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this,
                 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         NotificationCompat.BigTextStyle bigText = new NotificationCompat.BigTextStyle();
-        bigText.bigText("Title"); //detail mode is the "expanded" notification
-        bigText.setBigContentTitle("Text");
+        bigText.setBigContentTitle(title);
+        bigText.bigText(formattedBody); //detail mode is the "expanded" notification
 
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("Title")
-                .setContentText("Text")
+                .setContentTitle(title)
+                //.setContentText(formattedBody)
                 .setSmallIcon(R.drawable.icon)
                 .setContentIntent(pendingIntent)
-                .setStyle(bigText)
+                .setStyle(style)
                 .build();
         notification.flags = FLAG_ONLY_ALERT_ONCE;
 

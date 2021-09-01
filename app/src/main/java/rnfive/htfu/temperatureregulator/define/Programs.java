@@ -2,6 +2,8 @@ package rnfive.htfu.temperatureregulator.define;
 
 import android.util.Log;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -17,6 +19,7 @@ public class Programs {
     private static final String TAG = Programs.class.getSimpleName();
     private static final String FILE_NAME = "programs.json";
 
+    @SerializedName("programs")
     private List<Program> programList = new ArrayList<>();
 
     public Programs() {}

@@ -32,8 +32,8 @@ public class UrlRunnable implements Runnable {
             URL url = new URL(urlBase + endPoint);
             Log.d(TAG, url.toString());
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
-            con.setReadTimeout(5000);
-            con.setConnectTimeout(5000);
+            con.setReadTimeout(15000);
+            con.setConnectTimeout(15000);
             con.setUseCaches(false);
             con.setAllowUserInteraction(false);
             con.setRequestProperty("Content-Type", "application/json; utf-8");

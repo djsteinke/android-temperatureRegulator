@@ -3,6 +3,7 @@ package rnfive.htfu.temperatureregulator.define;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.NumberPicker;
@@ -19,7 +20,11 @@ import lombok.Getter;
 import lombok.Setter;
 import rnfive.htfu.temperatureregulator.MainActivity;
 
+import static java.util.Objects.isNull;
+import static rnfive.htfu.temperatureregulator.MainActivity.programs;
 import static rnfive.htfu.temperatureregulator.define.Constants.convertTemp;
+import static rnfive.htfu.temperatureregulator.define.Constants.tempMaxC;
+import static rnfive.htfu.temperatureregulator.define.Constants.tempMinC;
 
 @Getter
 @Setter
@@ -31,6 +36,15 @@ public class ButtonAlert {
     private final int[] layoutIds = new int[] {R.layout.alert_heat, 0, 0};
     private NumberPicker p1;
     private NumberPicker p2;
+    private static final int tempSize = tempMaxC - tempMinC + 1;
+    private static final String[] temps = new String[tempSize];
+    static {
+        for (int c=tempMinC; c<=tempMaxC; c++) {
+            int i = c-tempMinC;
+            int f = (int) Math.round(convertTemp(null, (double) c));
+            temps[i] = c + "\u00B0C [" + f + "\u00B0F]";
+        }
+    }
 
     public ButtonAlert(Context context, UrlListener listener) {
         this.listener = listener;
@@ -53,16 +67,26 @@ public class ButtonAlert {
                 pos = 0;
                 type = "heat";
         }
+        Log.d(TAG, "pos[" + pos + "]");
+
+        if (pos == 2 && (isNull(programs) || isNull(programs.list()) || programs.list().size() == 0)) {
+            return;
+        }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setView(getView(pos, v.isActivated()));
         builder.setPositiveButton("OK", (dialog, which) -> {
-            int time = (pos<2 && !v.isActivated()?context.getResources().getIntArray(R.array.time_int_array)[p1.getValue()]:0);
-            String program = (pos==2?p1.getDisplayedValues()[p1.getValue()]:"none");
-            double temp = (p2.getValue()>0?convertTemp((double)p2.getValue(), null):0.0);
-            String url = "run?type=" + type + "&time=" + time + "&temp=" + temp + "&program=" + program;
+            String url;
             if (v.isActivated())
                 url = "cancel?type=" + type;
+            else {
+                int time = (pos < 2 && !v.isActivated() ? context.getResources().getIntArray(R.array.time_int_array)[p1.getValue()] : 0);
+                String program = (pos == 2 ? p1.getDisplayedValues()[p1.getValue()] : "none");
+                double temp = 0.0d;
+                if (p2.getVisibility() != View.GONE)
+                    temp = (double) p2.getValue() + tempMinC;
+                url = "run?type=" + type + "&time=" + time + "&temp=" + temp + "&program=" + program;
+            }
             Executor executor = Executors.newSingleThreadExecutor();
             executor.execute(new UrlRunnable(listener, url));
         });
@@ -90,14 +114,20 @@ public class ButtonAlert {
             String titleValue = context.getString(R.string.start) + " " + titles[pos] + "?";
             title.setText(titleValue);
             String[] p1Values = context.getResources().getStringArray(R.array.time_array);
-            if (pos == 2)
-                p1Values = new String[] {"Main"};
+            if (pos == 2) {
+                p1Values = new String[programs.list().size()];
+                int i = 0;
+                for (Program p : programs.list())
+                    p1Values[i++] = p.getName();
+            }
             p1.setMinValue(0);
             p1.setMaxValue(p1Values.length - 1);
             p1.setDisplayedValues(p1Values);
             p1.setWrapSelectorWheel(false);
-            p2.setMinValue(75);
-            p2.setMaxValue(175);
+            p2.setMinValue(0);
+            p2.setMaxValue(tempSize - 1);
+            p2.setDisplayedValues(temps);
+            p2.setWrapSelectorWheel(false);
             return view;
         } else {
             @SuppressLint("InflateParams")

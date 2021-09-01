@@ -46,7 +46,12 @@ import rnfive.htfu.temperatureregulator.define.enums.Action;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.util.Arrays;
+import java.util.Locale;
 
+import static android.text.TextUtils.isEmpty;
+import static rnfive.htfu.temperatureregulator.define.Constants.df0;
+import static rnfive.htfu.temperatureregulator.define.Constants.getTempString;
+import static rnfive.htfu.temperatureregulator.define.Constants.tempMaxC;
 import static rnfive.htfu.temperatureregulator.define.Menu.menuItemSelector;
 import static rnfive.htfu.temperatureregulator.define.enums.Action.*;
 import static rnfive.htfu.temperatureregulator.define.Constants.convertTemp;
@@ -56,6 +61,9 @@ import static rnfive.htfu.temperatureregulator.define.Constants.fromJsonString;
 public class MainActivity extends AppCompatActivity implements UrlListener, OnItemClickListener {
 
     public final static String TAG = MainActivity.class.getSimpleName();
+
+    private static final double tempMinDisplay = 15.56;
+    private static int tempStartDisplay;
 
     public static AppCompatImageButton btHeat;
     public static AppCompatImageButton btVacuum;
@@ -76,6 +84,7 @@ public class MainActivity extends AppCompatActivity implements UrlListener, OnIt
     public static Settings settings;
     private ServiceBroadcastReceiver serviceBroadcastReceiver;
     private AppCompatImageView historyView;
+    private AppCompatImageView heatLight;
     private ProgramAdapter programAdapter;
     private int iHistW;
     private int iHistH;
@@ -94,6 +103,7 @@ public class MainActivity extends AppCompatActivity implements UrlListener, OnIt
         btRefresh = findViewById(R.id.ib_refresh);
         historyView = findViewById(R.id.history_image);
         btNext = findViewById(R.id.ib_programs);
+        heatLight = findViewById(R.id.heat_light);
         ViewTreeObserver vto = historyView.getViewTreeObserver();
         vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
@@ -135,7 +145,11 @@ public class MainActivity extends AppCompatActivity implements UrlListener, OnIt
     }
 
     private double[] getMM(Status status) {
-        double[] ret = new double[] {0,200};
+        double tMn = convertTemp(null, tempMinDisplay);
+        double tMx = convertTemp(null, (double) tempMaxC);
+        int tTemp = (int) (tMx/10);
+        tMx = (tTemp+1)*10d;
+        double[] ret = new double[] {tMx,tMn};
         if (status.getHistoryList() != null) {
             for (Status.History history : status.getHistoryList()) {
                 double tF = convertTemp(null, history.getTemp());
@@ -147,12 +161,24 @@ public class MainActivity extends AppCompatActivity implements UrlListener, OnIt
                 if (tF < ret[1])
                     ret[1] = tF;
             }
-            ret[0] += 10;
-            ret[1] -= 10;
-            return ret;
-        } else {
-            return new double[] {0,0};
+            tTemp = (int) (ret[1]/10);
+            ret[1] = tTemp*10d;
         }
+        return ret;
+    }
+
+    private double[] getRMM(Status status) {
+        Integer[] ret = new Integer[] {null,null};
+        if (status.getHistoryList() != null) {
+            for (Status.History history : status.getHistoryList()) {
+                int time = history.getTime();
+                if (ret[0] == null || time > ret[0])
+                    ret[0] = time;
+                if (ret[1] == null || time < ret[1])
+                    ret[1] = time;
+            }
+        }
+        return new double[] {(double) (ret[0] != null ? ret[0] : 0), (double) (ret[1] != null ? ret[1] : 0)};
     }
 
     private void drawHistory() {
@@ -163,9 +189,16 @@ public class MainActivity extends AppCompatActivity implements UrlListener, OnIt
         if (response.getStatus() != null && response.getStatus().getHistoryList() != null) {
             Status status = response.getStatus();
             double[] mm = getMM(status);
+            double[] rmm = getRMM(status);
             Log.d(TAG, "MaxMin: " + Arrays.toString(mm));
-            int xOff = 85;
-            double xMs = (double) (iHistW - xOff) / (double) status.getRecordingTime();
+            Log.d(TAG, "MaxMin: " + Arrays.toString(rmm));
+            int xOff = 90;
+            double xDiff = rmm[0] - rmm[1];
+            if (xDiff < 3600) {
+                rmm[1] = rmm[0] - 3600;
+                xDiff = 3600;
+            }
+            double xMs = (double) (iHistW - xOff) / xDiff;
             double yD = (double) iHistH / (mm[0] - mm[1]);
 
             Paint pTemp = new Paint();
@@ -186,8 +219,9 @@ public class MainActivity extends AppCompatActivity implements UrlListener, OnIt
             pTxt.setTextSize(getPxFromDp(15f));
             pTxt.setTextAlign(Paint.Align.RIGHT);
 
-            int i = (int) mm[0] - 10;
+            int i = (int) mm[0] - 20;
 
+            // Horizontal lines
             while (i > mm[1]) {
                 double y = (mm[0] - i) * yD;
                 Path p = new Path();
@@ -195,12 +229,13 @@ public class MainActivity extends AppCompatActivity implements UrlListener, OnIt
                 p.lineTo(iHistW, (float) y);
                 canvas.drawPath(p, pH);
                 canvas.drawText(formatInt(i) + "\u00B0", xOff - 10, (float) y + getPxFromDp(5f), pTxt);
-                i -= 10;
+                i -= 20;
             }
 
-            int xDiv = (status.getRecordingTime()/1800) + 1;
+            // Vertical lines ever 15 mins
+            int xDiv = (int) (xDiff/900.0d) + 1;
             for (int d = 0; d < xDiv - 1; d++) {
-                double x = xOff + (d*1800) * xMs;
+                double x = xOff + (d*900) * xMs;
                 Path p = new Path();
                 p.moveTo((float) x, 0);
                 p.lineTo((float) x, iHistH);
@@ -209,22 +244,27 @@ public class MainActivity extends AppCompatActivity implements UrlListener, OnIt
 
             Path pT = new Path();
             Path pV = new Path();
+            Path pSetTemp = new Path();
             boolean move = true;
-            double vYold = -1;
-            pV.moveTo((float) xOff, (float) iHistH);
+            float vYold = -1;
             for (Status.History h : status.getHistoryList()) {
-                double x = xOff + h.getTime() * xMs;
-                double y = (mm[0] - convertTemp(null, h.getTemp())) * yD;
-                double vY = (h.isVacuum()?0:iHistH);
+                float x = (float) (xOff + (h.getTime()-rmm[1]) * xMs);
+                float y = (float) ((mm[0] - convertTemp(null, h.getTemp())) * yD);
+                float yST = (float) ((mm[0] - convertTemp(null, h.getSetTemp())) * yD);
+                float vY = (float) ((h.isVacuum()?0:iHistH));
+
                 if (x >= xOff) {
                     if (move) {
-                        pT.moveTo((float) x, (float) y);
+                        pT.moveTo(x, (float) iHistH);
+                        pSetTemp.moveTo(x, yST);
+                        pV.moveTo(x, (float) iHistH);
                     } else {
-                        pT.lineTo((float) x, (float) y);
+                        pT.lineTo(x, y);
+                        pSetTemp.lineTo(x, yST);
                     }
                     if (vY != vYold) {
-                        pV.lineTo((float) x, (float) vYold);
-                        pV.lineTo((float) x, (float) vY);
+                        pV.lineTo(x, vYold);
+                        pV.lineTo(x, vY);
                         vYold = vY;
                     }
                     move = false;
@@ -240,6 +280,9 @@ public class MainActivity extends AppCompatActivity implements UrlListener, OnIt
             pTxt.setAlpha(50);
             canvas.drawPath(pV, pTxt);
             canvas.drawPath(pT, pTemp);
+            pTemp.setColor(getColor(R.color.red_dark));
+            pTemp.setStrokeWidth(getPxFromDp(1.0f));
+            canvas.drawPath(pSetTemp, pTemp);
         }
         historyView.setImageBitmap(bitmap);
     }
@@ -310,14 +353,14 @@ public class MainActivity extends AppCompatActivity implements UrlListener, OnIt
             String reqType = "";
             if (epSplit.length > 0)
                 reqType = epSplit[0];
-            //DecimalFormat df1 = new DecimalFormat("#.#");
-            DecimalFormat df0 = new DecimalFormat("#");
 
             response = fromJsonString(val, Response.class);
             if (response.getCode() == 400) {
-                String fail = "Failed to connect to";
-                if (!response.getValue().contains(fail))
+                String fail = "failed to connect to";
+                if (!response.getValue().toLowerCase(Locale.US).contains(fail)) {
                     Toast.makeText(this, "Error: " + response.getValue(), Toast.LENGTH_SHORT).show();
+                } else
+                    service(StatusService.REFRESH_STATUS);
                 if (reqType.equals("run")) {
                     if (epSplit.length > 1) {
                         String[] keys = epSplit[1].split("&");
@@ -338,6 +381,20 @@ public class MainActivity extends AppCompatActivity implements UrlListener, OnIt
                     setRunButtonActivated(keys);
                 } else {
                     if (response.getType().equals("status") && response.getStatus() != null) {
+                        service(StatusService.REFRESH_STATUS);
+                        String t = getTempString(response.getStatus().getTemperature()) + " @ " +
+                                df0.format(response.getStatus().getHumidity()) + "%\n";
+                        if (response.getStatus().getStep() >= 0)
+                            t += (response.getStatus().getStep() + 1) + " @ " + response.getStatus().getElapsedStepTime() + "["
+                                    + response.getStatus().getStepTime() + "]\n";
+                        if (response.getStatus().getHoldTemperature() > 0)
+                            t += "Hold: " + getTempString(response.getStatus().getHoldTemperature()) + "\n";
+                        if (response.getStatus().getRunning() != null && !isEmpty(response.getStatus().getRunning()))
+                            t += "Running [" + response.getStatus().getRunning() + "]\n";
+                        //t += "Heat [" + (response.getStatus().isHeatRunning() ? "RUNNING | " : "") + (response.getStatus().isHeatOn() ? "ON" : "OFF") + "]\n";
+                        //t += "Vacuum [" + (response.getStatus().isVacuumRunning() ? "ON" : "OFF") +
+                        //        (response.getStatus().isVacuumRunning() ? " (" + response.getStatus().getVacuumTimeRemaining() + ")" : "") + "]";
+                        /*
                         String txt = "Humidity: " + df0.format(response.getStatus().getHumidity()) + "%\n";
                         txt += "Temperature: " + getTempString(response.getStatus().getTemperature()) + "\n";
                         txt += "Step: " + response.getStatus().getStep() + "\n";
@@ -348,18 +405,17 @@ public class MainActivity extends AppCompatActivity implements UrlListener, OnIt
                         txt += "Heat Running: " + (response.getStatus().isHeatRunning() ? "ON" : "OFF") + "\n";
                         txt += "Vacuum Running: " + (response.getStatus().isVacuumRunning() ? "ON" : "OFF") +
                                 (response.getStatus().isVacuumRunning() ? " [" + response.getStatus().getVacuumTimeRemaining() + "]" : "") + "\n";
+                         */
+                        TextView tv = findViewById(R.id.status);
+                        tv.setText(t);
 
-                        TextView tv = findViewById(R.id.name_text);
-                        tv.setText(txt);
-
-                        boolean h = response.getStatus().isHeatRunning() || response.getStatus().isHeatOn();
-
-                        btHeat.setActivated(h);
+                        heatLight.setVisibility((response.getStatus().isHeatOn() ? View.VISIBLE : View.GONE));
+                        btHeat.setActivated(response.getStatus().isHeatRunning());
                         btVacuum.setActivated(response.getStatus().isVacuumRunning());
                         btProgram.setActivated(response.getStatus().isProgramRunning());
                         drawHistory();
 
-                        Log.d(TAG, txt);
+                        Log.d(TAG, t);
                     }
                 }
             }
@@ -399,11 +455,6 @@ public class MainActivity extends AppCompatActivity implements UrlListener, OnIt
                 btProgram.setActivated(!btProgram.isActivated());
                 break;
         }
-    }
-
-    private String getTempString(double c) {
-        DecimalFormat df1 = new DecimalFormat("#.#");
-        return df1.format(c) + "\u00B0C [" + df1.format(convertTemp(null, c)) + "\u00B0F]";
     }
 
     private void receiver(Action action) {
@@ -504,7 +555,12 @@ public class MainActivity extends AppCompatActivity implements UrlListener, OnIt
     @Override
     public void onPause() {
         super.onPause();
+    }
+
+    @Override
+    public void onDestroy() {
         service(StatusService.STOP_SERVICE);
         receiver(UNREGISTER);
+        super.onDestroy();
     }
 }
