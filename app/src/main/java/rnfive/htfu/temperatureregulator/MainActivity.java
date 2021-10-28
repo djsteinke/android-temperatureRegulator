@@ -186,6 +186,13 @@ public class MainActivity extends AppCompatActivity implements UrlListener, OnIt
         Bitmap bitmap = Bitmap.createBitmap(iHistW, iHistH, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
 
+        int iGraphH = iHistH - (int) getPxFromDp(50.0f);
+        int iIsOnH = (int) getPxFromDp(20.0f);
+        int iIsOnGap = (int) getPxFromDp(5.0f);
+        int iVacOnH = iHistH - iIsOnH;
+        int iHeatOnH = iVacOnH - iIsOnGap - iIsOnH;
+        int iHeatOffH = iHeatOnH + iIsOnH;
+
         if (response.getStatus() != null && response.getStatus().getHistoryList() != null) {
             Status status = response.getStatus();
             double[] mm = getMM(status);
@@ -199,12 +206,22 @@ public class MainActivity extends AppCompatActivity implements UrlListener, OnIt
                 xDiff = 3600;
             }
             double xMs = (double) (iHistW - xOff) / xDiff;
-            double yD = (double) iHistH / (mm[0] - mm[1]);
+            double yD = (double) iGraphH / (mm[0] - mm[1]);
 
             Paint pTemp = new Paint();
             pTemp.setStyle(Paint.Style.STROKE);
             pTemp.setColor(getColor(R.color.teal_200));
             pTemp.setStrokeWidth(getPxFromDp(1.5f));
+
+            Paint pHeat = new Paint();
+            pHeat.setStyle(Paint.Style.STROKE);
+            pHeat.setColor(getColor(R.color.red));
+            pHeat.setStrokeWidth(getPxFromDp(1.5f));
+
+            Paint pVac = new Paint();
+            pVac.setStyle(Paint.Style.STROKE);
+            pVac.setColor(getColor(R.color.teal_200));
+            pVac.setStrokeWidth(getPxFromDp(1.5f));
 
             Paint pH = new Paint();
             pH.setStyle(Paint.Style.STROKE);
@@ -238,47 +255,83 @@ public class MainActivity extends AppCompatActivity implements UrlListener, OnIt
                 double x = xOff + (d*900) * xMs;
                 Path p = new Path();
                 p.moveTo((float) x, 0);
-                p.lineTo((float) x, iHistH);
+                p.lineTo((float) x, iGraphH);
                 canvas.drawPath(p, pH);
             }
 
             Path pT = new Path();
-            Path pV = new Path();
+            Path pVacOn = new Path();
+            Path pHeatOn = new Path();
             Path pSetTemp = new Path();
-            boolean move = true;
+            boolean moveT = true;
+            boolean moveST = true;
             float vYold = -1;
+            boolean vacuumOn = false;
+            boolean heatOn = false;
             for (Status.History h : status.getHistoryList()) {
                 float x = (float) (xOff + (h.getTime()-rmm[1]) * xMs);
                 float y = (float) ((mm[0] - convertTemp(null, h.getTemp())) * yD);
                 float yST = (float) ((mm[0] - convertTemp(null, h.getSetTemp())) * yD);
-                float vY = (float) ((h.isVacuum()?0:iHistH));
 
                 if (x >= xOff) {
-                    if (move) {
-                        pT.moveTo(x, (float) iHistH);
-                        pSetTemp.moveTo(x, yST);
-                        pV.moveTo(x, (float) iHistH);
+                    if (moveT) {
+                        pT.moveTo(x, (float) iGraphH);
                     } else {
                         pT.lineTo(x, y);
+                    }
+                    if (moveST && h.getSetTemp() > 0) {
+                        pSetTemp.moveTo(x, iGraphH);
+                        moveST = false;
+                    }
+                    if (h.getSetTemp() > 0)
                         pSetTemp.lineTo(x, yST);
+                    moveT = false;
+                    if (h.isVacuum() && !vacuumOn) {
+                        pVacOn.moveTo(x, (float) iHistH);
+                        pVacOn.lineTo(x, (float) iVacOnH);
+                    } else if (!h.isVacuum() && vacuumOn) {
+                        pVacOn.lineTo(x, (float) iVacOnH);
+                        pVacOn.lineTo(x, (float) iHistH);
+                        pVacOn.close();
                     }
-                    if (vY != vYold) {
-                        pV.lineTo(x, vYold);
-                        pV.lineTo(x, vY);
-                        vYold = vY;
+                    vacuumOn = h.isVacuum();
+
+                    if (h.isHeat() && !heatOn) {
+                        pHeatOn.moveTo(x, (float) iHeatOffH);
+                        pHeatOn.lineTo(x, (float) iHeatOnH);
+                    } else if (!h.isHeat() && heatOn) {
+                        pHeatOn.lineTo(x, (float) iHeatOnH);
+                        pHeatOn.lineTo(x, (float) iHeatOffH);
+                        pHeatOn.close();
                     }
-                    move = false;
+                    heatOn = h.isHeat();
                 }
             }
-            if (status.getHistoryList().size() > 1)
-                if (vYold == 0)
-                    pV.lineTo((float) iHistW, (float) 0);
-                pV.lineTo((float) iHistW, (float) iHistH);
-                pV.lineTo((float) xOff, (float) iHistH);
-                pV.close();
-            pTxt.setColor(getColor(R.color.teal_200));
-            pTxt.setAlpha(50);
-            canvas.drawPath(pV, pTxt);
+            if (vacuumOn) {
+                pVacOn.lineTo((float) iHistW, (float) iVacOnH);
+                pVacOn.lineTo((float) iHistW, (float) iHistH);
+                pVacOn.close();
+
+                pVac.setStyle(Paint.Style.FILL_AND_STROKE);
+            }
+            canvas.drawCircle((float) (xOff/2), (float) (iVacOnH + iIsOnH/2), (float) iIsOnH/2.0f-getPxFromDp(1.5f), pVac);
+
+            if (heatOn) {
+                pHeatOn.lineTo((float) iHistW, (float) iHeatOnH);
+                pHeatOn.lineTo((float) iHistW, (float) iHeatOffH);
+                pHeatOn.close();
+
+                pHeat.setStyle(Paint.Style.FILL_AND_STROKE);
+            }
+            canvas.drawCircle((float) (xOff/2), (float) (iHeatOnH + iIsOnH/2), (float) iIsOnH/2.0f-getPxFromDp(1.5f), pHeat);
+
+            pVac.setStyle(Paint.Style.FILL);
+            pVac.setAlpha(50);
+            canvas.drawPath(pVacOn, pVac);
+            pHeat.setStyle(Paint.Style.FILL);
+            pHeat.setAlpha(100);
+            canvas.drawPath(pHeatOn, pHeat);
+
             canvas.drawPath(pT, pTemp);
             pTemp.setColor(getColor(R.color.red_dark));
             pTemp.setStrokeWidth(getPxFromDp(1.0f));
@@ -409,7 +462,7 @@ public class MainActivity extends AppCompatActivity implements UrlListener, OnIt
                         TextView tv = findViewById(R.id.status);
                         tv.setText(t);
 
-                        heatLight.setVisibility((response.getStatus().isHeatOn() ? View.VISIBLE : View.GONE));
+                        //heatLight.setVisibility((response.getStatus().isHeatOn() ? View.VISIBLE : View.GONE));
                         btHeat.setActivated(response.getStatus().isHeatRunning());
                         btVacuum.setActivated(response.getStatus().isVacuumRunning());
                         btProgram.setActivated(response.getStatus().isProgramRunning());

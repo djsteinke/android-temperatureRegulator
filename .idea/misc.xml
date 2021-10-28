@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="..\:/MyData/Program Files/Android/AndroidStudioProjects/android-temperatureRegulator/app/src/main/res/drawable/button_rounded_rect.xml" value="0.18229166666666666" />
+        <entry key="..\:/MyData/Program Files/Android/AndroidStudioProjects/android-temperatureRegulator/app/src/main/res/drawable/rectangle_round_corners.xml" value="0.18229166666666666" />
+        <entry key="..\:/MyData/Program Files/Android/AndroidStudioProjects/android-temperatureRegulator/app/src/main/res/layout/activity_main.xml" value="0.5" />
+      </map>
+    </option>
+  </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" default="true" project-jdk-name="1.8" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/build/classes" />
   </component>
@@ -9,7 +18,7 @@
   <component name="VisualizationToolProject">
     <option name="state">
       <ProjectState>
-        <option name="scale" value="0.33" />
+        <option name="scale" value="0.5" />
       </ProjectState>
     </option>
   </component>

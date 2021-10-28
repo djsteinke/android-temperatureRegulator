@@ -22,6 +22,7 @@ public class Status {
     private int elapsedProgramTime;
     private int vacuumTimeRemaining;
     private boolean heatOn;
+    private boolean vacuumOn;
     private boolean heatRunning;
     private boolean vacuumRunning;
     private boolean programRunning;
@@ -40,6 +41,7 @@ public class Status {
         private double temp;
         private double setTemp;
         private boolean vacuum;
+        private boolean heat;
 
         public History() {}
     }

@@ -14,4 +14,6 @@
     <color name="off_white">#F8F9F9</color>
     <color name="red_dark">#922B21</color>
     <color name="red">#C0392B</color>
+
+    <color name="button_activated">@color/teal_700</color>
 </resources>
