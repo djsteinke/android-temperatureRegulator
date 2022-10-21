@@ -13,7 +13,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.TemperatureRegulator"
         android:usesCleartextTraffic="true">
-        <activity android:name="rnfive.htfu.temperatureregulator.MainActivity">
+        <activity android:name="rnfive.htfu.temperatureregulator.MainActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

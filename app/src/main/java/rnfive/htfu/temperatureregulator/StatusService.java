@@ -19,9 +19,11 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import rnfive.htfu.temperatureregulator.define.UrlRunnable;
 import rnfive.htfu.temperatureregulator.define.enums.Action;
+import rnfive.htfu.temperatureregulator.BuildConfig;
 
 import static android.text.TextUtils.isEmpty;
 import static androidx.core.app.NotificationCompat.FLAG_ONLY_ALERT_ONCE;
@@ -142,9 +144,17 @@ public class StatusService extends Service implements UrlListener{
         SpannableString formattedBody = null;
         if (text != null)
             formattedBody = new SpannableString(Html.fromHtml(text, Html.FROM_HTML_MODE_LEGACY));
-        Intent notificationIntent = new Intent(this, StatusService.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this,
-                0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+        PendingIntent pendingIntent;
+
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            pendingIntent = PendingIntent.getActivity(this,
+                    0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        } else {
+            pendingIntent = PendingIntent.getActivity(this,
+                    0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        }
 
         NotificationCompat.BigTextStyle bigText = new NotificationCompat.BigTextStyle();
         bigText.setBigContentTitle(title);
